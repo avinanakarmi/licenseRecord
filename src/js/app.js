@@ -61,21 +61,6 @@ async function init () {
         window.location = "http://localhost:3000/invalidAccess.html"
       }
       else {
-        // instance.getAll({from: account})
-        // .then((res) => {
-        //   console.log(res);
-        // })
-        // .catch(err => {
-        //   console.log(err);
-        // })
-        // getUserInfo();
-        // instance.userCount()
-        // .then((res) => {
-        //   var count = res.s;
-        //   for ( var i=1; i <= count; i++){
-        //     console.log(instance.userRecord(i));
-        //   }
-        // })
         var licNo = prompt("Enter the license no. you would like to update", "");
         instance.checkStatus(licNo)
         .then((res) => {
@@ -211,16 +196,6 @@ async function registerUser (event) {
     })
 }
 
-async function issueG1Lic (licNo) {
-  instance.issueG1(licNo, true, {from: account})
-  .then((res) => {
-    console.log(res)
-  })
-  .catch(err => {
-    console.log(err);
-  })
-}
-
 //issue license
 async function issueLicense (element) {
   const uid = element.id;
@@ -244,23 +219,12 @@ async function issueLicense (element) {
   }
 }
 
-const check = document.querySelector('#check')
-check.addEventListener('submit', checkO, false)
-
-//check user
-async function checkO (event) {
-  event.preventDefault()
-  console.log("here");
-  console.log(instance.checOfficer({from:account}));
-}
-
+const test = document.querySelector('#test')
+test.addEventListener('click', test1, false)
 
 //register user
-async function getUserInfo () {
-  var licNo = document.getElementById('licNo').value
-  instance.checkStatus(licNo)
-  .then(() => {
-    console.log(res);
-  })
+async function test1 (event) {
+  event.preventDefault()
+  console.log("network")
 }
 
