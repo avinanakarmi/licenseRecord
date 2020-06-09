@@ -119,7 +119,7 @@ contract LicenseRecord{
         return false;
     }
 
-    // function getAll() public view returns (address[] memory users){
-    //     return userList;
-    // }
+    //function getAll() public view returns (address[] memory users){
+    //    return userList;
+    //}
 }

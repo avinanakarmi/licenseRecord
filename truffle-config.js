@@ -1,5 +1,5 @@
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const mnemonic = <YOUR MNEMONIC>;
+const mnemonic = "<YOUR_MNEMONIC>";
 
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
     },
     ropsten: {
       provider: function () {
-       return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/b224c9705fd641718101c7a989c617dd")},
+       return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/YOUR_PROJECT_API_KEY")},
       network_id: 3,       // Ropsten's id
       gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)

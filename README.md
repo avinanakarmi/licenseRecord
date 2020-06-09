@@ -5,11 +5,8 @@
 
 ## Development
 
-1. Clone Repository:
+1. Clone Repository
 
-    ```
-    git clone https://github.com/myanzik/Certify.git
-    ```
 2. install dependencies:
 
     ```
@@ -29,7 +26,7 @@
     ```
     truffle migrate
     ```
-5. update the smart contract address in src/app.js
+5. update the smart contract address in src/app.js and connect Metamask to your application
 
 6. Build a project by running:
     ```

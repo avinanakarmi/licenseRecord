@@ -13,10 +13,10 @@ let network = 'ropsten' //by default
 
 //contract addresse of different network
 let addresses = {
-  localhost: '0x1AA1Ce8fea793D5C3dB8a8943581d577F41B0a06',
+  localhost: '<CONTRACT_ADDRESS>',
   rinkeby: '',
   kovan: '',
-  ropsten: '0x1AA1Ce8fea793D5C3dB8a8943581d577F41B0a06',
+  ropsten: '<CONTRACT_ADDRESS>',
   mainnet: ''
 }
 
@@ -30,7 +30,7 @@ async function onLoad () {
   } 
   catch (error) {
     // alert(error.message)
-    console.log(error);
+    console.log("error",error);
   }
 }
 
@@ -47,99 +47,58 @@ async function init () {
 
   //creating instance of contract at given address.
   instance = await contract.at(contractAddress)
-  console.log(instance);
+  console.log("instance", instance);
 
   //getting available accounts
   account = await watchProvider.getAccount()
 
-  var path = window.location.pathname;
+  //checking web3 in browser
+  if (!window.web3) {
+    window.web3 = new window.Web3(provider)
+  }
+
+  render();
+}
+
+function render() {
+  var path = window.location.href;
   var page = path.split("/").pop();
-  if(page == "issue.html") {
+  if(page === "issue.html") {
     instance.isOfficer({from: account})
     .then((res) => {
       if(!res) {
         window.location = "http://localhost:3000/invalidAccess.html"
       }
       else {
-        var licNo = prompt("Enter the license no. you would like to update", "");
-        instance.checkStatus(licNo)
-        .then((res) => {
-          switch(res) {
-            case "Not Registered": 
-              document.getElementById("message").innerHTML = "<p>License Number: " + licNo + " is not registered.</p>"
-              break;
-            case "Registered but No Examination Passed":
-                document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : " + res + "</p>"
-                setTimeout(function() {
-                  var r = confirm("Would you like to issue license G1?");
-                if (r == true) {
-                  instance.issueG1(licNo,true,{from: account})
-                  .then((res) => {
-                    alert("Successfully Issued!");
-                    instance.checkStatus(licNo)
-                    .then(res => {
-                      document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : " + res + "</p>"
-                    })
-                  })
-                  .catch(err => {
-                    alert("Couldnot Issue License. Error occured");
-                  })
-                } else {
-                }
-                }, 3000);
-                break;
-            case "G1":
-                document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : License Level " + res + "</p>"
-                setTimeout(function() {
-                  var r = confirm("Would you like to issue license G2?");
-                if (r == true) {
-                  instance.issueG2(licNo,true,{from: account})
-                  .then((res) => {
-                    alert("Successfully Issued!");
-                    instance.checkStatus(licNo)
-                    .then(res => {
-                      document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : " + res + "</p>"
-                    })
-                  })
-                  .catch(err => {
-                    alert("Couldnot Issue License. Error occured");
-                  })
-                } else {
-                }
-                }, 3000);
-                break;
-            case "G2":
-                document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : License Level " + res + "</p>"
-                setTimeout(function() {
-                  var r = confirm("Would you like to issue license G?");
-                if (r == true) {
-                  instance.issueG(licNo,true,{from: account})
-                  .then((res) => {
-                    alert("Successfully Issued!");
-                    instance.checkStatus(licNo)
-                    .then(res => {
-                      document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : License Level" + res + "</p>"
-                    })
-                  })
-                  .catch(err => {
-                    alert("Couldnot Issue License. Error occured");
-                  })
-                } else {
-                }
-                }, 3000);
-                break;
-            case "G":
-                document.getElementById("message").innerHTML = "<p>License Number: " + licNo + "</p><p>Current Status : License Level " + res + "</p>"
-                break;
-          }
-        })
+        window.location = "http://localhost:3000/inventory.html"
       }
     })
     .catch(err => {
       console.log(err);
     })
   }
-
+  else if (page.match(/(inventory)\.(html)/)) {
+    
+    instance.isOfficer({from: account})
+    .then((res) => {
+      if(!res) {
+        window.location = "http://localhost:3000/invalidAccess.html"
+      }
+      else {
+        const searchForm = document.querySelector('#searchUser')
+        searchForm.addEventListener('submit', searchUser, false)
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    })
+  }
+  else if (page.match(/(upgradeLicenseStatus)\.(html)/)){
+    var query = path.split("?").pop();
+    var addr = query.split("&").shift();
+    var status = query.split("&").pop().replace(/%20/g, " ");
+    issueLicense(addr, status)
+  }
   else {
     document.querySelector('#address').innerHTML = account;
 
@@ -157,11 +116,6 @@ async function init () {
       }
     })
   }
-
-  //checking web3 in browser
-  if (!window.web3) {
-    window.web3 = new window.Web3(provider)
-  }
 }
 
 
@@ -172,9 +126,6 @@ window.ethereum.on('accountsChanged', async function (accounts) {
   account = await watchProvider.getAccount()
   init();
 })
-
-
-
 
 const registerForm = document.querySelector('#registerForm')
 registerForm.addEventListener('submit', registerUser, false)
@@ -197,34 +148,84 @@ async function registerUser (event) {
 }
 
 //issue license
-async function issueLicense (element) {
-  const uid = element.id;
-  const fn = element.value;
+async function issueLicense (addr, status) {
   try {
-    var message;
-    switch(fn) {
+    switch(status) {
+      case "Registered but No Examination Passed":
+        instance.issueG1(addr,true, {from : account})
+        .then((res) => {
+          window.location = "http://localhost:3000/inventory.html"
+        })
+        .catch((err) => {
+          window.location = "http://localhost:3000/error.html"
+        })
+        break;
       case "G1":
-          message = instance.issueG1(uid,true);
+        instance.issueG2(addr,true, {from : account})
+        .then((res) => {
+          window.location = "http://localhost:3000/inventory.html"
+        })
+        .catch((err) => {
+          window.location = "http://localhost:3000/error.html"
+        })
+        break;
       case "G2":
-          message = instance.issueG2(uid,true);
-      case "G":
-          message = instance.issueG(uid,true);
+        instance.issueG(addr,true, {from : account})
+        .then((res) => {
+          window.location = "http://localhost:3000/inventory.html"
+        })
+        .catch((err) => {
+          window.location = "http://localhost:3000/error.html"
+        })
+        break;
       default:
-          message = instance.validate(uid);
+        instance.issueG1(addr,true, {from : account})
+        .then((res) => {
+          alert(`${addr} is ${res}`)
+        })
+        .catch((err) => {
+          window.location = "http://localhost:3000/error.html"
+        })
     }
-    console.log(message);
   }
   catch(error) {
     console.log(error);
   }
 }
 
-const test = document.querySelector('#test')
-test.addEventListener('click', test1, false)
-
-//register user
-async function test1 (event) {
+function searchUser (event) {
   event.preventDefault()
-  console.log("network")
-}
+  searchForm = document.querySelector('#searchUser')
+  searchAddr = searchForm.userAddress.value;
 
+  instance.checkStatus(searchAddr)
+  .then((res) => {
+    document.querySelector("#info").style.display = "block";
+    document.querySelector('#searchedAddress').innerHTML = searchAddr;
+    document.querySelector('#searchedAddressStatus').innerHTML = res;
+
+    var action = "";
+    switch(res) {
+      case "Not Registered":
+        action = "Not Registered";
+        break;
+      case "Registered but No Examination Passed":
+        action = "Issue G1";
+        break;
+      case "G1":
+        action = "Issue G2";
+        break;
+      case "G2":
+        action = "Issue G";
+        break;
+      default:
+        action = "Validate";
+    }
+    document.querySelector("#addressAction").href = "upgradeLicenseStatus.html?" + searchAddr + "&" + res;
+    if (res === "Not Registered"){
+      document.querySelector('#addressAction').innerHTML = '<button class="btn btn-primary" disabled>' + action + '</button>';
+    } else {
+      document.querySelector('#addressAction').innerHTML = '<button class="btn btn-primary" type="submit" value="search">' + action + '</button>';
+    }
+  })
+}
